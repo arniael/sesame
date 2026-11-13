@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b24">
+  <meta name="description" content="Un jeu inspiré du jeu télé « Mot de Passe » : devinez le mot en trois indices maximum.">
+  <title>Sésame</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <main id="app">
+    <div class="util-bar">
+      <span id="word-count-badge" class="badge-pill">320+ mots</span>
+      <button id="sound-btn" class="icon-btn" type="button" aria-label="Activer ou couper les bruitages" title="Activer / couper le son">
+        <span id="sound-icon">🔊</span>
+        <span id="sound-label" class="sound-label">Son activé</span>
+      </button>
+    </div>
+
+    <section id="screen-menu" class="screen">
+      <header class="logo">
+        <span class="logo-small">Arniael présente</span>
+        <h1><em>Sésame</em></h1>
+      </header>
+
+      <p class="intro">
+        Un mot code à trouver, <strong>trois indices</strong> maximum.
+        Plus vous trouvez tôt, plus vous marquez&nbsp;:
+      </p>
+
+      <ul class="ladder" aria-label="Barème des points">
+        <li class="ladder-gold">
+          <div class="ladder-pts"><b>5</b> <small>pts</small></div>
+          <span>1<sup>er</sup> indice</span>
+        </li>
+        <li class="ladder-silver">
+          <div class="ladder-pts"><b>3</b> <small>pts</small></div>
+          <span>2<sup>e</sup> indice</span>
+        </li>
+        <li class="ladder-bronze">
+          <div class="ladder-pts"><b>1</b> <small>pt</small></div>
+          <span>3<sup>e</sup> indice</span>
+        </li>
+      </ul>
+
+      <div class="modes">
+        <button class="mode-card" data-mode="compet" type="button">
+          <div class="mode-icon">🏆</div>
+          <div class="mode-body">
+            <div class="mode-header">
+              <span class="mode-title">Partie simple</span>
+              <span class="mode-record">Record : <b id="rec-compet">–</b></span>
+            </div>
+            <span class="mode-desc">5 codes à trouver pour viser le 25/25. Aucun joker de passe.</span>
+          </div>
+          <span class="mode-arrow">→</span>
+        </button>
+
+        <button class="mode-card" data-mode="serie" type="button">
+          <div class="mode-icon">🔥</div>
+          <div class="mode-body">
+            <div class="mode-header">
+              <span class="mode-title">Série</span>
+              <span class="mode-record">Record : <b id="rec-serie">–</b></span>
+            </div>
+            <span class="mode-desc">Enchaînez les mots sans erreur fatale. 2 jokers pour passer.</span>
+          </div>
+          <span class="mode-arrow">→</span>
+        </button>
+
+        <button class="mode-card" data-mode="training" type="button">
+          <div class="mode-icon">🎯</div>
+          <div class="mode-body">
+            <div class="mode-header">
+              <span class="mode-title">Entraînement</span>
+              <span class="mode-record">Libre &amp; infini</span>
+            </div>
+            <span class="mode-desc">Jouez sans pression pour découvrir toute la banque de mots. Passes illimitées.</span>
+          </div>
+          <span class="mode-arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="screen-game" class="screen" hidden>
+      <div class="topbar">
+        <button id="quit-btn" class="btn ghost small" type="button">✕ Quitter</button>
+        <div id="round-dots" class="round-dots" aria-hidden="true"></div>
+        <span id="mode-label" class="mode-label"></span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span id="stat-a-label"></span>
+          <b id="stat-a"></b>
+        </div>
+        <div class="stat">
+          <span id="stat-b-label"></span>
+          <b id="stat-b"></b>
+        </div>
+      </div>
+
+      <ol id="slots" class="slots" aria-label="Indices"></ol>
+
+      <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+
+      <form id="guess-form" class="guess-form" autocomplete="off">
+        <div class="input-wrapper">
+          <input id="guess-input" type="text" inputmode="text" enterkeyhint="send"
+                 autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                 placeholder="Entrez votre proposition…" aria-label="Votre proposition">
+        </div>
+        <div class="row">
+          <button id="submit-btn" class="btn primary" type="submit">Valider ↵</button>
+          <button id="pass-btn" class="btn ghost" type="button">Passer</button>
+        </div>
+      </form>
+
+      <div id="result" class="result" hidden>
+        <div id="result-badge" class="result-badge"></div>
+        <h2 id="result-title"></h2>
+        <p id="result-text"></p>
+        <div id="result-extra" class="result-extra" hidden></div>
+        <button id="next-btn" class="btn primary" type="button">Continuer →</button>
+      </div>
+    </section>
+
+    <section id="screen-end" class="screen" hidden>
+      <div class="end-card">
+        <span class="end-eyebrow">Bilan de la partie</span>
+        <h2 id="end-title"></h2>
+        <div id="end-big" class="end-big"></div>
+        <p id="end-sub" class="end-sub"></p>
+        <p id="end-record" class="end-record"></p>
+
+        <div class="recap-box">
+          <span class="recap-label">Mots joués durant cette session</span>
+          <ul id="end-recap" class="recap" aria-label="Récapitulatif"></ul>
+        </div>
+
+        <div class="row">
+          <button id="again-btn" class="btn primary" type="button">↻ Rejouer</button>
+          <button id="menu-btn" class="btn ghost" type="button">Menu principal</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <noscript><p style="text-align:center;color:#fff">Ce jeu nécessite JavaScript.</p></noscript>
+  <script src="words.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
